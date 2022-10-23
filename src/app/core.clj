@@ -1,22 +1,26 @@
 (ns app.core
   (:require
    [aleph.http :as http]
-   [aleph.netty :as netty]))
+   [aleph.netty :as netty]
+   [reitit.ring :as ring]))
 
 
 (defonce servers (atom {}))
 
 
-(defn app
-  [_req]
-  {:status 200
-   :headers {"content-type" "text/plain"}
-   :body "hello!!"})
+(def app
+  (ring/ring-handler
+   (ring/router
+    ["/"
+     ["" {:get {:handler {:status 200
+                          :body   "Hello!\nIt is nice to meet you!"}}}]])))
+
 
 (defn get-config
   [server]
   (when (some? server)
     {:port (netty/port server)}))
+
 
 (defn start-server!
   [& {:keys [port] :or {port 8888}}]
@@ -24,11 +28,13 @@
     (swap! servers assoc port server)
     {:started (get-config server)}))
 
+
 (defn stop-server!
   [& {:keys [port] :or {port 8888}}]
   (when-let [server (get @servers port)]
     (swap! servers update port #(.close %))
     {:stopped (get-config server)}))
+
 
 (defn restart-server!
   [& {:keys [port] :or {port 8888} :as opts}]
