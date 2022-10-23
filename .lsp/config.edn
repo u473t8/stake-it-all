@@ -1,0 +1,18 @@
+{:notify-references-on-file-change
+ true
+
+ :clean
+ {:ns-inner-blocks-indentation :next-line
+  :sort                        {:ns      true
+                                :require true
+                                :import  true
+                                :refer   true}}
+ :keep-parens-when-threading?
+ true
+
+ :code-lens
+ {:segregate-test-references true}
+
+ :cljfmt-config-path
+ ".cljfmt.edn"}
+
