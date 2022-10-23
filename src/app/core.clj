@@ -1,19 +1,43 @@
 (ns app.core
   (:require
-   [aleph.http :as http]
-   [aleph.netty :as netty]
-   [reitit.ring :as ring]))
+    [aleph.http :as http]
+    [aleph.netty :as netty]
+    [muuntaja.core :as m]
+    [reitit.ring :as ring]
+    [reitit.ring.middleware.muuntaja :as muuntaja]))
 
 
 (defonce servers (atom {}))
 
 
+(defn hello-page
+  [request]
+  {:status 200
+   :headers {"content-type" "text/plain"}
+   :body "Hello!\nWe are nice to meet you!"})
+
+
+(defn greeting-message
+  [request]
+  {:status 200
+   :headers {"content-type" "application/json"}
+   :body {:message (format "Hello, %s!" (:first-name (:body-params request)))}})
+
+
+(defn primitive-middleware [handler id]
+  (fn [request]
+    (handler (update request ::acc (fnil conj []) id))))
+
+
 (def app
   (ring/ring-handler
-   (ring/router
-    ["/"
-     ["" {:get {:handler {:status 200
-                          :body   "Hello!\nIt is nice to meet you!"}}}]])))
+    (ring/router
+      ["/"
+       ["" {:get  {:handler #'hello-page}
+            :post {:handler #'greeting-message}}]]
+      {:data
+       {:muuntaja m/instance
+        :middleware [muuntaja/format-middleware]}})))
 
 
 (defn get-config
@@ -39,35 +63,16 @@
 (defn restart-server!
   [& {:keys [port] :or {port 8888} :as opts}]
   (let [opts (-> @servers
-                 (get port)
-                 (get-config)
-                 (merge opts))]
+               (get port)
+               (get-config)
+               (merge opts))]
     (merge
-     (stop-server! opts)
-     (start-server! opts))))
+      (stop-server! opts)
+      (start-server! opts))))
 
 
 (comment
-  (restart-server!)
-  (stop-server!))
-
-
-(deref servers)
-
-
-{:id :example
- :description "The description to this example resource"
- :summary "An example resource"
- :access-control "..."
- :properties "..."
- :parameters {:query "..." :path "..." :header "..."}
- :produces "..."
- :consumes "..."
- :methods {:get "..." :put "..." :post "..." :delete "..." :patch "..."}
- :responses {,,,}
- :path-info? false
- :sub-resource "..."
- :logger "..."
- :interceptor-chain "..."
- :error-interceptor-chain "..."
- :custom/other "..."}
+  @servers
+  (start-server! :port 5000)
+  (restart-server! :port 4000)
+  (stop-server! :port 5000))
