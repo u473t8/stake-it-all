@@ -1,30 +1,33 @@
 (ns app.core
   (:require
-   [yada.yada :as yada]))
+   [aleph.http :as http]
+   [aleph.netty :as netty]))
 
 
 (defonce servers (atom {}))
 
-(def greeting
-  (yada/yada "Hello!\nIt is nice to meet you!"))
 
-(def app ["/" [["" #'greeting]]])
+(defn app
+  [_req]
+  {:status 200
+   :headers {"content-type" "text/plain"}
+   :body "hello!!"})
 
 (defn get-config
   [server]
-  (dissoc server :server :close))
+  (when (some? server)
+    {:port (netty/port server)}))
 
 (defn start-server!
   [& {:keys [port] :or {port 8888}}]
-  (let [server (yada/listener app {:port port})]
+  (let [server (http/start-server #'app {:port port})]
     (swap! servers assoc port server)
     {:started (get-config server)}))
 
 (defn stop-server!
   [& {:keys [port] :or {port 8888}}]
   (when-let [server (get @servers port)]
-    (swap! servers dissoc port)
-    ((:close server))
+    (swap! servers update port #(.close %))
     {:stopped (get-config server)}))
 
 (defn restart-server!
@@ -42,3 +45,23 @@
   (restart-server!)
   (stop-server!))
 
+
+(deref servers)
+
+
+{:id :example
+ :description "The description to this example resource"
+ :summary "An example resource"
+ :access-control "..."
+ :properties "..."
+ :parameters {:query "..." :path "..." :header "..."}
+ :produces "..."
+ :consumes "..."
+ :methods {:get "..." :put "..." :post "..." :delete "..." :patch "..."}
+ :responses {,,,}
+ :path-info? false
+ :sub-resource "..."
+ :logger "..."
+ :interceptor-chain "..."
+ :error-interceptor-chain "..."
+ :custom/other "..."}
