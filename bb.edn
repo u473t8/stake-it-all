@@ -1,0 +1,3 @@
+{:tasks
+ {dev {:doc "Run project in development mode."
+       :task {eval (clojure "-M:dev")}}}}
