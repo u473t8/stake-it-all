@@ -38,6 +38,13 @@
       {:status 401})))
 
 
+(defn logout
+  [_]
+  {:status 302
+   :session nil
+   :headers {"Location" "/"}})
+
+
 (def app
   (ring/ring-handler
     (ring/router
@@ -46,7 +53,9 @@
          {:get  {:handler #'hello}
           :post {:handler #'greeting-message}}]
         ["login"
-         {:post {:handler #'login}}]]]
+         {:post {:handler #'login}}]
+        ["logout"
+         {:get {:handler #'logout}}]]]
       {:data
        {:muuntaja m/instance
         :middleware [muuntaja/format-middleware
@@ -83,6 +92,11 @@
     (merge
       (stop-server! opts)
       (start-server! opts))))
+
+
+(defn -main
+  []
+  (restart-server! :port 3434))
 
 
 
