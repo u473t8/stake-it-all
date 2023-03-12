@@ -1,3 +1,5 @@
 {:tasks
- {dev {:doc "Run project in development mode."
-       :task {eval (clojure "-M:dev")}}}}
+ {dev      {:doc  "Run project in development mode."
+            :task {eval (clojure "-M:dev")}}
+  outdated {:doc  "Find outdated deps"
+            :task {eval (clojure  "-Sdeps '{:deps {com.github.liquidz/antq {:mvn/version \"RELEASE\"}}}' -M -m antq.core")}}}}
