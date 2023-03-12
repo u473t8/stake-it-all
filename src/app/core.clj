@@ -17,22 +17,22 @@
   [{:keys [session]}]
   (if (seq session)
     {:status 200
-     :body (format "Hi, %s! How do you do?" (:user session))}
+     :body   (format "Hi, %s! How do you do?" (:user session))}
     {:status 200
-     :body (format "Hello! Who are you?")}))
+     :body   (format "Hello! Who are you?")}))
 
 
 (defn greeting-message
   [request]
   {:status 200
-   :body {:message (format "Hello, %s!" (:first-name (:body-params request)))}})
+   :body   {:message (format "Hello, %s!" (:first-name (:body-params request)))}})
 
 
 (defn login
   [request]
   (let [user (:user (:body-params request))]
     (if (contains? #{"egor" "petr"} user)
-      {:status 200
+      {:status  200
        :session {:date (java.util.Date.)
                  :user user}}
       {:status 401})))
@@ -40,27 +40,27 @@
 
 (defn logout
   [_]
-  {:status 302
+  {:status  302
    :session nil
    :headers {"Location" "/"}})
 
 
 (def app
   (ring/ring-handler
-    (ring/router
-      ["/"
-       [[""
-         {:get  {:handler #'hello}
-          :post {:handler #'greeting-message}}]
-        ["login"
-         {:post {:handler #'login}}]
-        ["logout"
-         {:get {:handler #'logout}}]]]
-      {:data
-       {:muuntaja m/instance
-        :middleware [muuntaja/format-middleware
-                     [ring-session/wrap-session {:store session-store
-                                                 :cookie-attrs {:http-only false}}]]}})))
+   (ring/router
+    ["/"
+     [[""
+       {:get  {:handler #'hello}
+        :post {:handler #'greeting-message}}]
+      ["login"
+       {:post {:handler #'login}}]
+      ["logout"
+       {:get {:handler #'logout}}]]]
+    {:data
+     {:muuntaja   m/instance
+      :middleware [muuntaja/format-middleware
+                   [ring-session/wrap-session {:store        session-store
+                                               :cookie-attrs {:http-only false}}]]}})))
 
 
 (defn get-config
@@ -86,12 +86,12 @@
 (defn restart-server!
   [& {:keys [port] :or {port 8888} :as opts}]
   (let [opts (-> @servers
-               (get port)
-               (get-config)
-               (merge opts))]
+                 (get port)
+                 (get-config)
+                 (merge opts))]
     (merge
-      (stop-server! opts)
-      (start-server! opts))))
+     (stop-server! opts)
+     (start-server! opts))))
 
 
 (defn -main
