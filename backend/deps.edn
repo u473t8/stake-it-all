@@ -1,0 +1,22 @@
+{:paths   ["app/src" ""]
+ :deps    {aleph/aleph         {:mvn/version "0.6.1"}
+           metosin/muuntaja    {:mvn/version "0.6.8"}
+           metosin/reitit      {:mvn/version "0.6.0"}
+           org.clojure/clojure {:mvn/version "1.11.1"}
+           ring/ring-core      {:mvn/version "1.9.6"}}
+ :aliases {:dev   {:extra-paths ["dev"]
+                   :extra-deps  {philoskim/debux               {:mvn/version "0.8.2"}
+                                 nrepl/nrepl                   {:mvn/version "1.1.0-alpha1"}
+                                 cider/cider-nrepl             {:mvn/version "0.30.0"}
+                                 refactor-nrepl/refactor-nrepl {:mvn/version "3.6.0"}}
+                   :main-opts   ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware refactor-nrepl.middleware/wrap-refactor]"]}
+           :test  {:extra-paths ["test"]
+                   :extra-deps  {io.github.cognitect-labs/test-runner
+                                 {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                                  :sha     "7284cda41fb9edc0f3bc6b6185cfb7138fc8a023"}}
+                   :main-opts   ["-m" "cognitect.test-runner"]
+                   :exec-fn     cognitect.test-runner.api/test}
+           :build {:extra-paths ["build"]
+                   :extra-deps {org.clojure/tools.build "0.9.3"}
+                   :ns-default build
+                   :exec-fn    uberjar}}}

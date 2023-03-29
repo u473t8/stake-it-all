@@ -1,0 +1,5 @@
+{:tasks
+ {dev  {:doc  "Run backend in dev mode"
+        :task (shell "echo 'running backend in dev mode'")}
+  test {:doc  "Run backend tests"
+        :task (shell "echo 'running backend tests'")}}}

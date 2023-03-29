@@ -1,5 +1,18 @@
 {:tasks
- {dev      {:doc  "Run project in development mode."
-            :task {eval (clojure "-M:dev")}}
-  outdated {:doc  "Find outdated deps"
-            :task {eval (clojure  "-Sdeps '{:deps {com.github.liquidz/antq {:mvn/version \"RELEASE\"}}}' -M -m antq.core")}}}}
+ {:requires ([clojure.string :as str]
+             [clojure.edn :as edn])
+  backend   {:doc  "Run application server"
+             :task (let [shell    (partial shell {:dir "backend"})
+                         commands (->> "backend/bb.edn"
+                                       (slurp)
+                                       (edn/read-string)
+                                       :tasks
+                                       (keys)
+                                       (filter symbol?)
+                                       (map str)
+                                       (set))]
+                     (if (contains? commands (first *command-line-args*))
+                       (apply shell "bb" *command-line-args*)
+                       (shell "bb tasks")))}
+  outdated  {:doc  "Find outdated deps"
+             :task {eval (clojure  "-Sdeps '{:deps {com.github.liquidz/antq {:mvn/version \"RELEASE\"}}}' -M -m antq.core")}}}}
