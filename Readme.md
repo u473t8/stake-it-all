@@ -13,10 +13,10 @@ We need the Knowledge.
 
 
 ## Requirements
-- Babashka
+- [Babashka](https://babashka.org)
 
 
 ## Run
 ```shell
-bb dev
+bb tasks
 ```

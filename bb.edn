@@ -20,9 +20,9 @@
                     java.io.FileNotFoundException e (println (format "Error in task definition. No such file `%s/bb.edn`." dir))))))
   backend   {:doc  "Run application server"
              :task (tasks-from "backend")}
-  frontend  {:doc  "Run aplication UI."
+  frontend  {:doc  "Run application UI."
              :task (tasks-from "frontend")}
-  outdated  {:doc  "Find outdated deps"
+  outdated  {:doc  "Find outdated deps."
              :task (doseq [dir ["backend" "frontend"]]
                      (do (println (format "\nSearching outdated dependencies for %s project:" dir))
                        (shell (format "bb %s outdated" dir))))}}}
