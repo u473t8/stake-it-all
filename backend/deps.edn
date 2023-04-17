@@ -3,9 +3,9 @@
            metosin/muuntaja    {:mvn/version "0.6.8"}
            metosin/reitit      {:mvn/version "0.6.0"}
            org.clojure/clojure {:mvn/version "1.11.1"}
-           ring/ring-core      {:mvn/version "1.9.6"}}
+           ring/ring-core      {:mvn/version "1.10.0"}}
  :aliases {:dev   {:extra-paths ["dev"]
-                   :extra-deps  {philoskim/debux               {:mvn/version "0.8.2"}
+                   :extra-deps  {philoskim/debux               {:mvn/version "0.8.3"}
                                  nrepl/nrepl                   {:mvn/version "1.1.0-alpha1"}
                                  cider/cider-nrepl             {:mvn/version "0.30.0"}
                                  refactor-nrepl/refactor-nrepl {:mvn/version "3.6.0"}}
