@@ -5,11 +5,11 @@ We need the Knowledge.
 
 
 ## Sounds like a plan:
--[x] Babashka
--[] Linter
--[] Formater
--[] Test login/logout
--[] ...
+- [x] Babashka
+- [x] Linter
+- [x] Formater
+- [] Test login/logout
+- [] ...
 
 
 ## Requirements
