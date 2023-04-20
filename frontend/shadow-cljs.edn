@@ -1,0 +1,7 @@
+{:deps     true
+ :builds   {:app {:target     :browser
+                  :output-dir "resources/public/js"
+                  :asset-path "/js"
+                  :modules    {:main {:entries [app.core]}}}}
+ :dev-http {3000 ["resources/public" "target/public"]}
+ :nrepl    {:port 45678}}
