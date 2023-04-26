@@ -1,7 +1,9 @@
 {:tasks
- {dev      {:doc  "Run backend in dev mode"
-            :task (shell "echo 'running frontend in dev mode'")}
-  test     {:doc  "Run backend tests"
+ {install  {:doc "Install Node modules."
+            :task (shell "npm install")}
+  dev      {:doc  "Run backend in dev mode."
+            :task (shell "npx shadow-cljs watch app")}
+  test     {:doc  "Run backend tests."
             :task (shell "echo 'running frontend tests'")}
   outdated {:doc  "Find outdated deps."
             :task (clojure "-Sdeps '{:deps {com.github.liquidz/antq {:mvn/version \"RELEASE\"}}}' -M -m antq.core")}}}
