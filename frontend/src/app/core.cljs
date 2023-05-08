@@ -1,115 +1,164 @@
 (ns app.core
   (:require
+    [app.footer :as footer]
+    [clojure.string :as str]
+    [re-frame.core :as rf]
     [reagent.core :as r]
-    [reagent.dom :as dom]))
+    [reagent.dom.client :as dom]))
 
 
-(def the-state (r/atom {:theme  :light
-                        :reader? false}))
+(rf/reg-sub :db :-> identity)
+
+(rf/reg-sub :theme :-> :theme)
+
+(rf/reg-sub :username :-> :username)
+
+(rf/reg-sub :paid-content? :-> :paid-content?)
+
+(rf/reg-sub
+  :label
+  :<- [:username]
+  (fn [username _]
+    (if username
+      "Log out"
+      "Log in")))
+
+
+
+(rf/reg-event-db
+  :log-in
+  (fn [db _]
+    (assoc db
+      :username (if (:username db) nil "Person"))))
+
+
+(defn set-page-theme!
+  [theme]
+  (set!
+    (.-href (.getElementById js/document "theme"))
+    (str "styles/" (str/replace (name theme) #"[-_]+" "_") ".css")))
+
+
+(defn browser-dark-theme?
+  []
+  (-> js/window
+    (.matchMedia "(prefers-color-scheme: dark)")
+    (.-matches)))
+
+
+(rf/reg-event-db
+  :change-page-theme
+  (fn [db [_ & args]]
+    (let [dark? (browser-dark-theme?)
+          theme (case (:theme db)
+                  :light :dark
+                  :dark  :light)]
+      (set-page-theme! theme)
+      (assoc db
+        :theme theme))))
+
+
+(rf/reg-event-db
+  :page-load
+  (fn [db _]
+    (let [dark? (browser-dark-theme?)
+          theme (if dark? :dark :light)]
+      (set-page-theme! theme)
+      (assoc db
+        :theme               theme ;; We need to intercept user's preferences.
+        :theme/browser-dark? dark?
+        :paid-content?       false
+        :username            nil))))
+
+
+(rf/reg-event-db
+  :open-paid-content
+  (fn [db _]
+    (assoc db
+      :paid-content? (if (true? (:paid-content? db)) false true)
+      :footer        (if (nil? (:footer db)) :user-logged nil))))
+
 
 
 (defn navigation
-  [arg]
+  [& args]
   [:nav {:style {:background    :pink
                  :border-radius :10px
                  :margin        "20px 0 50px 0"
                  :padding       "10px 10px 10px 20px"}}
-   arg])
+   (into [:<>] args)])
 
 
-(defn footer?
-  [x]
-  (boolean (and x @the-state)))
-
-
-(defmulti footer (fn [& xs] (first xs)))
-
-
-(defmethod footer :default
-  [& _]
-  [:div
-   [:h1 "Default footer."]])
-
-
-(defmethod footer :after-switch
-  [& _]
-  [:div
-   [:h1 "Bye, <username>!"]
-   [:div {:style {:color :red}} "Red"]])
-
-
-(defn div
-  [x]
-  [:div x])
-
-
-(defn lightbox
+(defn button-change-theme
   []
-  [:div.lightbox
-   {:on-click (fn [_]
-                (swap! the-state assoc
-                  :theme (case (:theme @the-state)
-                           :light     :semi-dark
-                           :semi-dark :dark
-                           :dark      :light)))}
-   (:theme @the-state)])
+  [:input {:type     :button
+           :value    @(rf/subscribe [:theme])
+           :on-click #(rf/dispatch [:change-page-theme])}])
 
 
-(defn reader
+(defn button-log-in
+  []
+  [:input {:type     :button
+           :value    @(rf/subscribe [:label])
+           :on-click #(rf/dispatch [:log-in])}])
+
+
+(defn article
   [arg & xs]
   [:<>
-   [:div.reader
+   [:div.article
     (when (not (nil? arg)) [:div arg])
-    [:input {:type    :button
-             :value   "THE MAIN BUTTON"
-             :on-click (fn [_]
-                         (swap! the-state assoc
-                           :reader? (if (:reader? @the-state) false true)
-                           :footer  (if (nil? (:footer @the-state)) :after-switch nil)))}]
+    [:input {:type     :button
+             :value    "Buy content"
+             :on-click #(rf/dispatch [:open-paid-content])}]
     (if arg
-      (rest (map div xs))
-      (first (map div xs)))]])
-
-
-(defn log-in-button
-  []
-  [:div
-   [:input {:type     :button
-            :value    (if (:username @the-state) "Log out" "Log in")
-            :on-click (fn [_]
-                        (swap! the-state assoc
-                          :username (if (:username @the-state) nil "Person")))}]])
+      (rest (for [x xs] ^{:key x} [:div x]))
+      (first (for [x xs] [:div x])))]])
 
 
 (defn greeting
   [username]
   [:header
    [:h1
-    (if (:username @the-state)
-      (if (:username @the-state)
-        (str "Hello, " (:username @the-state) "!")
+    (if @(rf/subscribe [:username])
+      (if @(rf/subscribe [:username])
+        (str "Hello, " @(rf/subscribe [:username]) "!")
         "Hello, <username>!")
       "Hi there!")]])
+
+
+(rf/reg-event-db
+  :change-browser-theme
+  (fn [db _]
+    (assoc db
+      :theme/browser-dark? (.-matches (.matchMedia js/window "(prefers-color-scheme: dark)")))))
 
 
 (defn app
   []
   (set! (.-title js/document) "Hello, World!")
   [:<>
-   [:div {} "The state of page: " @the-state]
-   [navigation [:<>
-                [lightbox]
-                [log-in-button]]]
+   [:div {} "The state of page: " @(rf/subscribe [:db])]
+   [navigation [:div {:style {:display         :flex
+                              :justify-content :space-between}}
+                [button-change-theme]
+                [button-log-in]]]
    [greeting]
-   [reader (:reader? @the-state) "Common content" "Paid super-duper content"]
-   [footer (:footer @the-state)]])
+   [article @(rf/subscribe [:paid-content?]) "Common content" "Paid super-duper content"]
+   [footer/footer @(rf/subscribe [:footer])]])
 
 
-(defn mount
+(defonce root
+  (dom/create-root (.getElementById js/document "app")))
+
+
+(defn ^:dev/after-load mount
   "Mounts application in the body of the main page."
   []
-  (dom/render [app]
-    (.-body js/document)))
+  (rf/clear-subscription-cache!)
+  (rf/dispatch [:page-load])
+  (dom/render root [app]))
 
 
-(mount)
+(.addEventListener (.matchMedia js/window "(prefers-color-scheme: dark)")
+  "change" #(rf/dispatch [:change-browser-theme]))
